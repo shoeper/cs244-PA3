@@ -25,18 +25,22 @@ parser = ArgumentParser(description="Bufferbloat tests")
 parser.add_argument('--bw-server', '-bs',
                     type=float,
                     help="Bandwidth of server link (Mb/s)",
-                    default=1.5)
+                    default=500)
 
 parser.add_argument('--bw-attacker', '-ba',
                     type=float,
                     help="Bandwidth of attacker (network) link (Mb/s)",
-                    default=1.5)
+                    default=500)
 
 parser.add_argument('--bw-innocent', '-bi',
                     type=float,
                     help="Bandwidth of innocent (network) link (Mb/s)",
-                    default=1.5)
+                    default=500)
 
+parser.add_argument('--bw-bottleneck', '-bb',
+                    type=float,
+                    help="Bandwidth of bottleneck link (Mb/s)",
+                    default=1.5)
 
 parser.add_argument('--delay',
                     type=float,
@@ -72,15 +76,18 @@ class BBTopo(Topo):
 
     def build(self, n=2):
         switch0 = self.addSwitch('s0')
+        switch1 = self.addSwitch('s1')
 
         attacker_client = self.addHost('attacker')
         self.addLink(attacker_client, switch0, bw=args.bw_attacker, delay=args.delay)
 
         innocent_client = self.addHost('innocent')
-        self.addLink(innocent_client, switch0, bw=args.bw_innocent, max_queue_size=args.maxq, delay=args.delay)
+        self.addLink(innocent_client, switch0, bw=args.bw_innocent, delay=args.delay)
+
+        self.addLink(switch0, switch1, bw=args.bw_bottleneck, max_queue_size=args.maxq, delay=args.delay)
 
         server = self.addHost('server')
-        self.addLink(server, switch0, bw=args.bw_server, delay=args.delay)
+        self.addLink(server, switch1, bw=args.bw_server, delay=args.delay)
 
         return
 
