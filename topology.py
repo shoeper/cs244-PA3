@@ -118,15 +118,38 @@ def start_iperf(net):
     innocent_client.popen("iperf -c %s -t %d" % (server.IP(), args.time))
 
     print "start_iperf done"
-    #TODO: uncomment
-    #attacker_client = net.get('a')
-    #attacker_client.popen("iperf -c %s -t %d" % (server.IP(), args.time))
 
 def start_webserver(net):
     server = net.get('server')
     proc = server.popen("python http/webserver.py", shell=True)
     sleep(1)
     return [proc]
+
+def start_innocent_client(net):
+    # Measure the time it takes to complete webpage transfer
+    # from h1 to h2 3 times every 5 seconds.  
+    fetch_times = []
+    start_time = time()
+    while True:
+        for i in range(3):
+            fetch_times.append(fetch_webpage(net))
+        sleep(5)
+        now = time()
+        delta = now - start_time
+        if delta > args.time:
+            break
+        print "%.1fs left..." % (args.time - delta)
+
+    print "Average web page fetch time: " + str(avg(fetch_times))
+    print "Standard deviation for web page fetch time: " + str(stdev(fetch_times))
+
+def start_attacker_client(net):
+    server = net.get('server')
+    server.popen("iperf -s -w 16m")
+    attacker_client = net.get('attacker')
+    attacker_client.popen("iperf -c %s -t %d" % (server.IP(), args.time))
+    sleep(60)
+
 
 def start_ping(net):
     print "start_ping"
@@ -164,30 +187,15 @@ def bufferbloat():
     # interface?  The interface numbering starts with 1 and increases.
     # Depending on the order you add links to your network, this
     # number may be 1 or 2.  Ensure you use the correct number.
-    qmon = start_qmon(iface='s0-eth2',
+    qmon = start_qmon(iface='s1-eth1',
                       outfile='%s/q.txt' % (args.dir))
 
     start_webserver(net) # Start first because webserver sleeps for one second, and 
                          # we don't want to do this after we start iperf
-    start_iperf(net)
-    start_ping(net)
-
-    # Measure the time it takes to complete webpage transfer
-    # from h1 to h2 3 times every 5 seconds.  
-    fetch_times = []
-    start_time = time()
-    while True:
-        for i in range(3):
-            fetch_times.append(fetch_webpage(net))
-        sleep(5)
-        now = time()
-        delta = now - start_time
-        if delta > args.time:
-            break
-        print "%.1fs left..." % (args.time - delta)
-
-    print "Average web page fetch time: " + str(avg(fetch_times))
-    print "Standard deviation for web page fetch time: " + str(stdev(fetch_times))
+    #start_iperf(net)
+    #start_ping(net)
+    start_innocent_client(net)
+    #start_attacker_client(net)
     
     stop_tcpprobe()
     qmon.terminate()
