@@ -108,16 +108,17 @@ def start_qmon(iface, interval_sec=0.1, outfile="q.txt"):
     monitor.start()
     return monitor
 
-def start_iperf(net):
+def start_iperf(net, name, attack_mode):
     print "Starting iperf server..."
 
     server = net.get('server')
     server.popen("iperf -s -w 16m")
 
-    innocent_client = net.get('innocent')
-    innocent_client.popen("iperf -c %s -t %d" % (server.IP(), args.time))
-
-    print "start_iperf done"
+    client = net.get(name)
+    if not attack_mode:
+        client.popen("iperf -c %s -t %d" % (server.IP(), args.time))
+    else:
+        client.popen("iperf -c %s -u -t %d -b 500M" % (server.IP(), args.time + 5))
 
 def start_webserver(net):
     server = net.get('server')
@@ -125,14 +126,14 @@ def start_webserver(net):
     sleep(1)
     return [proc]
 
-def start_innocent_client(net):
+def start_webpage_transfer(net, fetcher):
     # Measure the time it takes to complete webpage transfer
     # from h1 to h2 3 times every 5 seconds.  
     fetch_times = []
     start_time = time()
     while True:
         for i in range(3):
-            fetch_times.append(fetch_webpage(net))
+            fetch_times.append(fetch_webpage(net, fetcher))
         sleep(5)
         now = time()
         delta = now - start_time
@@ -143,27 +144,19 @@ def start_innocent_client(net):
     print "Average web page fetch time: " + str(avg(fetch_times))
     print "Standard deviation for web page fetch time: " + str(stdev(fetch_times))
 
-def start_attacker_client(net):
-    server = net.get('server')
-    server.popen("iperf -s -w 16m")
-    attacker_client = net.get('attacker')
-    attacker_client.popen("iperf -c %s -t %d" % (server.IP(), args.time))
-    sleep(60)
-
-
-def start_ping(net):
+def start_ping(net, name):
     print "start_ping"
      # Measure RTTs every 0.1 second. 
     server = net.get('server')
-    innocent_client = net.get('innocent')
-    ping = innocent_client.popen('ping -i 0.1 -w %d %s > %s/ping.txt' % (args.time, server.IP(),
+    client = net.get(name)
+    ping = client.popen('ping -i 0.1 -w %d %s > %s/ping.txt' % (args.time, server.IP(),
                 args.dir), shell=True)
 
-def fetch_webpage(net):
-    innocent_client = net.get('innocent')
+def fetch_webpage(net, fetcher):
+    client = net.get(fetcher)
     server = net.get('server')
     cmdline = 'curl -s -w "%{time_total}\n" -o /dev/null ' + '%s/http/index.html' % (server.IP())
-    cmd = innocent_client.popen(cmdline, shell=True, stdout=PIPE)
+    cmd = client.popen(cmdline, shell=True, stdout=PIPE)
     return float(cmd.stdout.readline())
 
 def bufferbloat():
@@ -182,20 +175,17 @@ def bufferbloat():
     # Start all the monitoring processes
     start_tcpprobe("cwnd.txt")
 
-    # TODO: Start monitoring the queue sizes.  Since the switch I
-    # created is "s0", I monitor one of the interfaces.  Which
-    # interface?  The interface numbering starts with 1 and increases.
-    # Depending on the order you add links to your network, this
-    # number may be 1 or 2.  Ensure you use the correct number.
-    qmon = start_qmon(iface='s1-eth1',
+    # s0-eth3 and s1-eth1 work for where the queue builds up
+    # s0-eth3 should be the the output interface from s0
+    # onto the bottleneck link
+    qmon = start_qmon(iface='s0-eth3',
                       outfile='%s/q.txt' % (args.dir))
 
     start_webserver(net) # Start first because webserver sleeps for one second, and 
                          # we don't want to do this after we start iperf
-    #start_iperf(net)
-    #start_ping(net)
-    start_innocent_client(net)
-    #start_attacker_client(net)
+    start_iperf(net, 'attacker', True)
+    start_ping(net, 'attacker')
+    start_webpage_transfer(net, 'innocent')
     
     stop_tcpprobe()
     qmon.terminate()
