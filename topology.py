@@ -14,6 +14,8 @@ from argparse import ArgumentParser
 
 from helper import avg, stdev
 
+from subprocess import call 
+
 from monitor import monitor_qlen
 import termcolor as T
 
@@ -45,7 +47,7 @@ parser.add_argument('--bw-bottleneck', '-bb',
 parser.add_argument('--delay',
                     type=float,
                     help="Link propagation delay (ms)",
-                    default=3)
+                    default=2)
 
 parser.add_argument('--dir', '-d',
                     help="Directory to store outputs",
@@ -60,6 +62,11 @@ parser.add_argument('--maxq',
                     type=int,
                     help="Max buffer size of network interface in packets",
                     default=100)
+
+parser.add_argument('--burstInterval',
+                    type=float,
+                    help="The attacker's inter-burst interval in seconds",
+                    default=1)
 
 # Linux uses CUBIC-TCP by default that doesn't have the usual sawtooth
 # behaviour.  For those who are curious, invoke this script with
@@ -108,17 +115,36 @@ def start_qmon(iface, interval_sec=0.1, outfile="q.txt"):
     monitor.start()
     return monitor
 
-def start_iperf(net, name, attack_mode):
+
+def start_iperf_client(net, name, attack_mode):
+    server = net.get('server')
+    client = net.get(name)
+
+    if not attack_mode:
+        client.popen("iperf -c %s -t %d" % (server.IP(), args.time))
+    else:
+        # Attack that floods the buffer:
+        client.popen("iperf -c %s -u -t %d -b 500M" % (server.IP(), args.time))
+
+        # TODO: Write the square wave function in C -_-
+        """
+        start_time = time()
+        last_time = start_time
+        while(True):
+            now = time()
+            delta = now - last_time
+            if now - start_time > args.time:
+                break
+            if delta >= args.burstInterval:
+                client.popen("iperf -c %s -u -t %d -b 500M" % (server.IP(), 0.15))
+                last_time = time()
+"""
+
+def start_iperf_server(net):
     print "Starting iperf server..."
 
     server = net.get('server')
     server.popen("iperf -s -w 16m")
-
-    client = net.get(name)
-    if not attack_mode:
-        client.popen("iperf -c %s -t %d" % (server.IP(), args.time))
-    else:
-        client.popen("iperf -c %s -u -t %d -b 500M" % (server.IP(), args.time + 5))
 
 def start_webserver(net):
     server = net.get('server')
@@ -126,15 +152,19 @@ def start_webserver(net):
     sleep(1)
     return [proc]
 
+def kill_iperf():
+    Popen("pgrep -f iperf | xargs kill -9", shell=True).wait()
+
 def start_webpage_transfer(net, fetcher):
     # Measure the time it takes to complete webpage transfer
     # from h1 to h2 3 times every 5 seconds.  
     fetch_times = []
     start_time = time()
     while True:
-        for i in range(3):
-            fetch_times.append(fetch_webpage(net, fetcher))
-        sleep(5)
+
+        fetch_times.append(fetch_webpage(net, fetcher))
+ 
+        sleep(2)
         now = time()
         delta = now - start_time
         if delta > args.time:
@@ -143,6 +173,7 @@ def start_webpage_transfer(net, fetcher):
 
     print "Average web page fetch time: " + str(avg(fetch_times))
     print "Standard deviation for web page fetch time: " + str(stdev(fetch_times))
+    print fetch_times
 
 def start_ping(net, name):
     print "start_ping"
@@ -175,7 +206,6 @@ def bufferbloat():
     # Start all the monitoring processes
     start_tcpprobe("cwnd.txt")
 
-    # s0-eth3 and s1-eth1 work for where the queue builds up
     # s0-eth3 should be the the output interface from s0
     # onto the bottleneck link
     qmon = start_qmon(iface='s0-eth3',
@@ -183,17 +213,16 @@ def bufferbloat():
 
     start_webserver(net) # Start first because webserver sleeps for one second, and 
                          # we don't want to do this after we start iperf
-    start_iperf(net, 'attacker', True)
-    start_ping(net, 'attacker')
+    start_iperf_server(net)
+    start_iperf_client(net, 'attacker', True)
     start_webpage_transfer(net, 'innocent')
-    
     stop_tcpprobe()
     qmon.terminate()
     net.stop()
     # Ensure that all processes you create within Mininet are killed.
     # Sometimes they require manual killing.
     Popen("pgrep -f ping | xargs kill -9", shell=True).wait()
-    Popen("pgrep -f iperf | xargs kill -9", shell=True).wait()
+    kill_iperf()
     Popen("pgrep -f webserver.py | xargs kill -9", shell=True).wait()
 
 if __name__ == "__main__":
