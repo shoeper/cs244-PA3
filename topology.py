@@ -64,12 +64,12 @@ parser.add_argument('--maxq',
 parser.add_argument('--burst_period',
                     type=float,
                     help="Interburst period",
-                    default=0)
+                    default=2)
 
 parser.add_argument('--burst_duration',
                     type=float,
                     help="Interburst duration",
-                    default=1)
+                    default=0.05)
 
 # Linux uses CUBIC-TCP by default that doesn't have the usual sawtooth
 # behaviour.  For those who are curious, invoke this script with
@@ -149,7 +149,7 @@ def start_webpage_transfer(net, fetcher):
             break
 
     print len(fetch_times)
-    #print fetch_times
+    print fetch_times
     print "Average web page fetch time: " + str(avg(fetch_times))
     print "Standard deviation for web page fetch time: " + str(stdev(fetch_times))
 

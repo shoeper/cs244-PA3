@@ -3,13 +3,14 @@
 # Note: Mininet must be run as root.  So invoke this shell script
 # using sudo.
 
-time=5
+time=15
 iperf_port=5001
 
 for qsize in 15; do
     dir=bb-q$qsize
 
     echo "Running cs244 PA3 for queue size $qsize :)"
+    sudo mn --clean
     dir=bb-q$qsize
 
     python topology.py --dir $dir --t $time --maxq $qsize
