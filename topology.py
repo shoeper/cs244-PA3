@@ -132,15 +132,14 @@ def start_webpage_transfer(net, fetcher):
     fetch_times = []
     start_time = time()
     while True:
-        for i in range(3):
-            fetch_times.append(fetch_webpage(net, fetcher))
-        sleep(5)
+        fetch_times.append(fetch_webpage(net, fetcher))
         now = time()
         delta = now - start_time
         if delta > args.time:
             break
-        print "%.1fs left..." % (args.time - delta)
 
+    print len(fetch_times)
+    #print fetch_times
     print "Average web page fetch time: " + str(avg(fetch_times))
     print "Standard deviation for web page fetch time: " + str(stdev(fetch_times))
 
