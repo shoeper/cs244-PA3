@@ -61,6 +61,16 @@ parser.add_argument('--maxq',
                     help="Max buffer size of network interface in packets",
                     default=100)
 
+parser.add_argument('--burst_period',
+                    type=int,
+                    help="Interburst period",
+                    default=0)
+
+parser.add_argument('--burst_duration',
+                    type=int,
+                    help="Interburst duration",
+                    default=1000)
+
 # Linux uses CUBIC-TCP by default that doesn't have the usual sawtooth
 # behaviour.  For those who are curious, invoke this script with
 # --cong cubic and see what happens...
@@ -118,7 +128,8 @@ def start_iperf(net, name, attack_mode):
     if not attack_mode:
         client.popen("iperf -c %s -t %d" % (server.IP(), args.time))
     else:
-        client.popen("iperf -c %s -u -t %d -b 500M" % (server.IP(), args.time + 5))
+        client.popen("python shrew.py %s %d %d" % (server.IP(), args.burst_period, args.burst_duration))
+        #client.popen("iperf -c %s -u -t %d -b 500M" % (server.IP(), args.time + 5))
 
 def start_webserver(net):
     server = net.get('server')
