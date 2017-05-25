@@ -3,7 +3,7 @@
 # Note: Mininet must be run as root.  So invoke this shell script
 # using sudo.
 
-time=10
+time=5
 iperf_port=5001
 
 for qsize in 15; do

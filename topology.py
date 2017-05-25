@@ -53,7 +53,7 @@ parser.add_argument('--dir', '-d',
 
 parser.add_argument('--time', '-t',
                     help="Duration (sec) to run the experiment",
-                    type=int,
+                    type=float,
                     default=10)
 
 parser.add_argument('--maxq',
@@ -62,14 +62,14 @@ parser.add_argument('--maxq',
                     default=100)
 
 parser.add_argument('--burst_period',
-                    type=int,
+                    type=float,
                     help="Interburst period",
                     default=0)
 
 parser.add_argument('--burst_duration',
-                    type=int,
+                    type=float,
                     help="Interburst duration",
-                    default=1000)
+                    default=1)
 
 # Linux uses CUBIC-TCP by default that doesn't have the usual sawtooth
 # behaviour.  For those who are curious, invoke this script with
@@ -126,10 +126,9 @@ def start_iperf(net, name, attack_mode):
 
     client = net.get(name)
     if not attack_mode:
-        client.popen("iperf -c %s -t %d" % (server.IP(), args.time))
+        client.popen("iperf -c %s -t %f" % (server.IP(), args.time))
     else:
-        client.popen("python shrew.py %s %d %d" % (server.IP(), args.burst_period, args.burst_duration))
-        #client.popen("iperf -c %s -u -t %d -b 500M" % (server.IP(), args.time + 5))
+        client.popen("python shrew.py %s %f %f %f" % (server.IP(), args.burst_period, args.burst_duration, args.time))
 
 def start_webserver(net):
     server = net.get('server')
