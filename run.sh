@@ -6,7 +6,7 @@
 time=30
 iperf_port=5001
 
-for qsize in 15; do
+for qsize in 3 4 5 6 ; do
     dir=bb-q$qsize
 
     echo "Running cs244 PA3 for queue size $qsize :)"

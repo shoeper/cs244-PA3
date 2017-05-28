@@ -45,7 +45,7 @@ parser.add_argument('--bw-bottleneck', '-bb',
 parser.add_argument('--delay',
                     type=float,
                     help="Link propagation delay (ms)",
-                    default=3)
+                    default=2)
 
 parser.add_argument('--dir', '-d',
                     help="Directory to store outputs",
@@ -64,12 +64,12 @@ parser.add_argument('--maxq',
 parser.add_argument('--burst_period',
                     type=float,
                     help="Interburst period",
-                    default=10)
+                    default=0.5)
 
 parser.add_argument('--burst_duration',
                     type=float,
                     help="Interburst duration",
-                    default=5)
+                    default=0.15)
 
 # Linux uses CUBIC-TCP by default that doesn't have the usual sawtooth
 # behaviour.  For those who are curious, invoke this script with
@@ -126,6 +126,7 @@ def start_iperf(net):
 
     client = net.get('innocent')
     client.popen("iperf -c %s -t %f -i %f -l %f > %s/iperf_out.txt" % (server.IP(), args.time, 2, 32768, args.dir), shell=True)
+    sleep(1)
 
 def start_attacker(net):
     client = net.get('attacker')
