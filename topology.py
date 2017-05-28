@@ -131,6 +131,8 @@ def start_iperf(net):
 def start_attacker(net):
     client = net.get('attacker')
     server = net.get('server')
+    print "Burst period: "
+    print args.burst_period
     client.popen("python shrew.py %s %f %f %f" % (server.IP(), args.burst_period, args.burst_duration, args.time))
 
 def start_webserver(net):
@@ -194,8 +196,9 @@ def bufferbloat():
                       outfile='%s/q.txt' % (args.dir))
 
     start_iperf(net)
-    #start_attacker(net)
-    sleep(args.time)    
+    start_attacker(net)
+    # Sleep for + 5 to give iperf chance to finish up
+    sleep(args.time + 10)    
     stop_tcpprobe()
     qmon.terminate()
     net.stop()
