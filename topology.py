@@ -64,12 +64,12 @@ parser.add_argument('--maxq',
 parser.add_argument('--burst_period',
                     type=float,
                     help="Interburst period",
-                    default=2)
+                    default=10)
 
 parser.add_argument('--burst_duration',
                     type=float,
                     help="Interburst duration",
-                    default=0.05)
+                    default=5)
 
 # Linux uses CUBIC-TCP by default that doesn't have the usual sawtooth
 # behaviour.  For those who are curious, invoke this script with
@@ -118,17 +118,19 @@ def start_qmon(iface, interval_sec=0.1, outfile="q.txt"):
     monitor.start()
     return monitor
 
-def start_iperf(net, name, attack_mode):
+def start_iperf(net):
     print "Starting iperf server..."
 
     server = net.get('server')
-    server.popen("iperf -s -w 16m")
+    server.popen("iperf -s -w 16m > %s/iperf_server.txt" % args.dir, shell=True)
 
-    client = net.get(name)
-    if not attack_mode:
-        client.popen("iperf -c %s -t %f" % (server.IP(), args.time))
-    else:
-        client.popen("python shrew.py %s %f %f %f" % (server.IP(), args.burst_period, args.burst_duration, args.time))
+    client = net.get('innocent')
+    client.popen("iperf -c %s -t %f -i %f -l %f > %s/iperf_out.txt" % (server.IP(), args.time, 2, 32768, args.dir), shell=True)
+
+def start_attacker(net):
+    client = net.get('attacker')
+    server = net.get('server')
+    client.popen("python shrew.py %s %f %f %f" % (server.IP(), args.burst_period, args.burst_duration, args.time))
 
 def start_webserver(net):
     server = net.get('server')
@@ -190,12 +192,9 @@ def bufferbloat():
     qmon = start_qmon(iface='s0-eth3',
                       outfile='%s/q.txt' % (args.dir))
 
-    start_webserver(net) # Start first because webserver sleeps for one second, and 
-                         # we don't want to do this after we start iperf
-    start_iperf(net, 'attacker', True)
-    start_ping(net, 'attacker')
-    start_webpage_transfer(net, 'innocent')
-    
+    start_iperf(net)
+    #start_attacker(net)
+    sleep(args.time)    
     stop_tcpprobe()
     qmon.terminate()
     net.stop()

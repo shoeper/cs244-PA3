@@ -3,7 +3,7 @@
 # Note: Mininet must be run as root.  So invoke this shell script
 # using sudo.
 
-time=10
+time=30
 iperf_port=5001
 
 for qsize in 15; do
@@ -20,5 +20,5 @@ for qsize in 15; do
     # Need qmon for q.png
     python plot_queue.py -f $dir/q.txt -o $dir/q.png
     # Need ping for rtt
-    python plot_ping.py -f $dir/ping.txt -o $dir/rtt.png
+    #python plot_ping.py -f $dir/ping.txt -o $dir/rtt.png
 done
