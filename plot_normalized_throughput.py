@@ -10,12 +10,15 @@ def plot(file, baseline, out):
 	ax = fig.add_subplot(111)
 
 	lines = open(file).readlines()
-	x = [line.split(' ')[0] for line in lines]
-	y = [line.split(' ')[1] for line in lines]
+	x = [float(line.split(' ')[0]) for line in lines]
+	y = [float(line.split(' ')[1]) / baseline for line in lines]
 
 	ax.plot(x,y, linestyle="", marker='x')
 	ax.set_ylabel("Throughput")
 	ax.set_xlabel("DoS Interburst Period")
+	ax.set_ylim(ymin=0)
+	ax.set_xlim(xmin=0)
+
 
 	if out:
 	    plt.savefig(out)
