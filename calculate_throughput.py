@@ -28,8 +28,10 @@ def calculate_throughput(fname):
 			print float(m.group(0))
 		elif 'Kbits' in last_line:
 			print float(m.group(0)) / 1024
+		elif 'bits' in last_line:
+			print float(m.group(0)) / 1024 / 1024
+		else:
+			print "error: could not parse throughput"
 
 if __name__ == "__main__":
 	calculate_throughput(args.file)
-
-
