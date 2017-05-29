@@ -14,14 +14,15 @@ def calculate_throughput(fname):
 	lines = open(fname).readlines()
 	last_line = lines[len(lines) - 1]
 	if ' 0.0' not in last_line:
+		print "Could not parse throughput file"
 		return
 	
-	m = re.search('(?<=Bytes\ \ )[0-9\.]+', last_line)
+	m = re.search('(?<=Bytes)[0-9\.\ ]+', last_line)
 
 	if m is None:
 		print 'Could not parse throughput file'
 	else:
-		print m.group(0)
+		print float(m.group(0))
 
 if __name__ == "__main__":
 	calculate_throughput(args.file)
