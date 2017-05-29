@@ -9,9 +9,10 @@ parser.add_argument('--file', '-f',
 args = parser.parse_args()
 
 def calculate_throughput(fname):
-	throughput = 0.0
-	total_seconds = 0.0
 	lines = open(fname).readlines()
+	if len(lines) == 0:
+		print "Empty file, check what's going on"
+		return
 	last_line = lines[len(lines) - 1]
 	if ' 0.0' not in last_line:
 		print "Could not find line in throughput file with aggregate throughput"
@@ -21,6 +22,7 @@ def calculate_throughput(fname):
 
 	if m is None:
 		print 'Last line does not match the regex'
+		return
 	else:
 		if 'Mbits' in last_line:
 			print float(m.group(0))
