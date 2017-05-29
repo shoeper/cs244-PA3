@@ -25,11 +25,13 @@ def clean_data():
 	    for key in dict:
 	    	# Average the values and output to the file
 	    	val = dict[key]
-	    	[float(i) for i in val]
 	    	f.write(key)
 	    	f.write(" ")
-	    	print val
-	    	f.write(str(float(sum(val))/len(val)))
+	    	val_floats = [float(x) for x in val]
+	    	print val_floats
+	    	avg = float(sum(val_floats))/len(val_floats)
+	    	print avg
+	    	f.write(str(avg))
 	    	f.write("\n")
 	    f.close()
 
