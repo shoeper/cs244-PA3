@@ -9,10 +9,14 @@ rm -r "output"
 mkdir "output"
 for d in */ ; do
 	{ # try
-		q=$(sed -E 's/data-q([0-9]+).*/\1/g' <<< "$d")
-		p=$(sed -E 's/data-q([0-9]+)-p([0-9]+\.[0-9]+).*/\2/g' <<< "$d")
-    	throughput=$(python calculate_throughput.py --file "$d/iperf_out.txt")
-    	echo "$p $throughput" >> "output/outq$q.txt"
+		if [ ! -f "$d/iperf_out.txt" ]; then
+    		echo "File not found! in dir $d"
+		else 
+			q=$(sed -E 's/data-q([0-9]+).*/\1/g' <<< "$d")
+			p=$(sed -E 's/data-q([0-9]+)-p([0-9]+\.[0-9]+).*/\2/g' <<< "$d")
+	    	throughput=$(python calculate_throughput.py --file "$d/iperf_out.txt")
+	    	echo "$p $throughput" >> "output/outq$q.txt"
+	    fi
 	}  || { # catch
     	echo "Error in directory $d"
 	}
