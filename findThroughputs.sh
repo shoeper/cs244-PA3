@@ -13,7 +13,7 @@ for d in */ ; do
     		echo "File not found! in dir $d"
 		else 
 			q=$(sed -E 's/data-q([0-9]+).*/\1/g' <<< "$d")
-			p=$(sed -E 's/data-q([0-9]+)-p([0-9]+\.[0-9]+).*/\2/g' <<< "$d")
+			p=$(sed -E 's/data-q([0-9]+)-p([0-9]*\.[0-9]+).*/\2/g' <<< "$d")
 	    	throughput=$(python calculate_throughput.py --file "$d/iperf_out.txt")
 	    	echo "$p $throughput" >> "output/outq$q.txt"
 	    fi
