@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from mininet.cli import CLI
 from mininet.topo import Topo
 from mininet.node import CPULimitedHost
 from mininet.link import TCLink
@@ -120,13 +121,20 @@ def start_qmon(iface, interval_sec=0.1, outfile="q.txt"):
 
 def start_iperf(net):
     print "Starting iperf server..."
-
+    # Change the min rto for client and server
+    # TODO: do we need to set the minRTO for the server?
+    
+    rto_min = str(1000)
     server = net.get('server')
-    server.popen("iperf -s -w 16m > %s/iperf_server.txt" % args.dir, shell=True)
+    cmd = "ip route change 10.0.0.0/8 dev server-eth0  proto kernel  scope link  src 10.0.0.3 rto_min 1000"
+    server.popen(cmd, shell=True).communicate()
+    server.popen("iperf -s -w 16m >> %s/iperf_server.txt" % args.dir, shell=True)
 
     client = net.get('innocent')
+    # TODO: should we get the client IP instead of hardcoding it in?
+    cmd = "ip route change 10.0.0.0/8 dev innocent-eth0  proto kernel  scope link  src 10.0.0.2 rto_min 1000"
+    client.popen(cmd, shell=True).communicate()
     client.popen("iperf -c %s -t %f -i %f -l %f > %s/iperf_out.txt" % (server.IP(), args.time, 2, 32768, args.dir), shell=True)
-    sleep(1)
 
 def start_attacker(net):
     client = net.get('attacker')
@@ -153,7 +161,6 @@ def start_webpage_transfer(net, fetcher):
         if delta > args.time:
             break
 
-    print len(fetch_times)
     print fetch_times
     print "Average web page fetch time: " + str(avg(fetch_times))
     print "Standard deviation for web page fetch time: " + str(stdev(fetch_times))
@@ -177,6 +184,10 @@ def bufferbloat():
     if not os.path.exists(args.dir):
         os.makedirs(args.dir)
     os.system("sysctl -w net.ipv4.tcp_congestion_control=%s" % args.cong)
+
+    # TODO: do we need to disable frto?
+    os.system("sysctl net.ipv4.tcp_frto=0")
+
     topo = BBTopo()
     net = Mininet(topo=topo, host=CPULimitedHost, link=TCLink)
     net.start()
@@ -196,6 +207,9 @@ def bufferbloat():
                       outfile='%s/q.txt' % (args.dir))
 
     start_iperf(net)
+    # Use mininet CLI for debugging
+    #CLI(net)
+    sleep(10)
     start_attacker(net)
     # Sleep for + 5 to give iperf chance to finish up
     sleep(args.time + 10)    
