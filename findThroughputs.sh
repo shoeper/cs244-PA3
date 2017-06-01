@@ -10,7 +10,7 @@ mkdir "output"
 for d in */ ; do
 	{ # try
 		if [ ! -f "$d/iperf_out.txt" ]; then
-    		echo "File not found! in dir $d"
+    		echo "Ignoring dir $d"
 		else 
 			q=$(sed -E 's/data-q([0-9]+).*/\1/g' <<< "$d")
 			p=$(sed -E 's/data-q([0-9]+)-p([0-9]*\.[0-9]+).*/\2/g' <<< "$d")

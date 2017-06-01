@@ -72,6 +72,11 @@ parser.add_argument('--burst_duration',
                     help="Interburst duration",
                     default=0.15)
 
+parser.add_argument('--min_rto',
+                    type=float,
+                    help="Min RTO (ms)",
+                    default=1000)
+
 # Linux uses CUBIC-TCP by default that doesn't have the usual sawtooth
 # behaviour.  For those who are curious, invoke this script with
 # --cong cubic and see what happens...
@@ -126,13 +131,10 @@ def start_iperf(net):
     
     rto_min = str(1000)
     server = net.get('server')
-    cmd = "ip route change 10.0.0.0/8 dev server-eth0  proto kernel  scope link  src 10.0.0.3 rto_min 1000"
-    server.popen(cmd, shell=True).communicate()
     server.popen("iperf -s -w 16m >> %s/iperf_server.txt" % args.dir, shell=True)
 
     client = net.get('innocent')
-    # TODO: should we get the client IP instead of hardcoding it in?
-    cmd = "ip route change 10.0.0.0/8 dev innocent-eth0  proto kernel  scope link  src 10.0.0.2 rto_min 1000"
+    cmd = "ip route change 10.0.0.0/8 dev innocent-eth0  proto kernel  scope link  src %s rto_min 1000" % client.IP()
     client.popen(cmd, shell=True).communicate()
     client.popen("iperf -c %s -t %f -i %f -l %f > %s/iperf_out.txt" % (server.IP(), args.time, 2, 32768, args.dir), shell=True)
 
