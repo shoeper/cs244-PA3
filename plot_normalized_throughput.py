@@ -17,6 +17,7 @@ def plot(file, baseline, out):
 	ax.set_ylabel("Throughput")
 	ax.set_xlabel("DoS Interburst Period")
 	ax.set_ylim(ymin=0)
+	ax.set_ylim(ymax=1.0)
 	ax.set_xlim(xmin=0)
 
 

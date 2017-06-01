@@ -46,23 +46,30 @@ def clean_data():
 	    # and then remove the rest of the code pertaining to minOutfile
 	    outfile = open(outfileName, 'w')
 	    minOutfile = open(minOutfileName, 'w')
+	    baseline_avg = 1.0
+	    baseline_min = 1.0
 	    for key in dict:
 	    	# Average the values and output to the file
 	    	val = dict[key]
-	    	outfile.write(key)
-	    	outfile.write(" ")
+	    	if key != '0.0':
+	    		outfile.write(key)
+	    		outfile.write(" ")
+	    		minOutfile.write(key)
+	    		minOutfile.write(" ")
+
 	    	val_floats = [float(x) for x in val]
+	    	minVal = min(val_floats)
 
 	    	avg = sum(val_floats)/len(val_floats)
-	    	outfile.write(str(avg))
-	    	outfile.write("\n")
-
-	    	# Write out the min of the values too
-	    	minOutfile.write(key)
-	    	minOutfile.write(" ")
-	    	minVal = min(val_floats)
-	    	minOutfile.write(str(minVal))
-	    	minOutfile.write("\n")
+	    	if key != '0.0':
+	    		outfile.write(str(avg))
+	    		outfile.write("\n")
+	    		minOutfile.write(str(minVal))
+	    		minOutfile.write("\n")
+	    	else:
+	    		baseline_avg = avg
+	    		baseline_min = minVal
+	    	
 	    outfile.close()
 	    minOutfile.close()
 
@@ -70,8 +77,8 @@ def clean_data():
 	    # TODO: remove code below (about queueing) later for final submission?
 	    # That is, we would have decided on a queue size then
 	    # so we wouldn't need to create separate plots by queue size
-	    plot_normalized_throughput.plot(outfileName, 1.0, graphDir + "/" + queueSize)
-	    plot_normalized_throughput.plot(minOutfileName, 1.0, graphDir + "/min" + queueSize)
+	    plot_normalized_throughput.plot(outfileName, baseline_avg, graphDir + "/" + queueSize)
+	    plot_normalized_throughput.plot(minOutfileName, baseline_min, graphDir + "/min" + queueSize)
 
 if __name__ == "__main__":
 	clean_data()

@@ -77,6 +77,11 @@ parser.add_argument('--min_rto',
                     help="Min RTO (ms)",
                     default=1000)
 
+parser.add_argument('--disable_attacker',
+                    type=bool,
+                    help="Whether the attacker is disabled",
+                    default=False)		
+
 # Linux uses CUBIC-TCP by default that doesn't have the usual sawtooth
 # behaviour.  For those who are curious, invoke this script with
 # --cong cubic and see what happens...
@@ -182,7 +187,7 @@ def fetch_webpage(net, fetcher):
     cmd = client.popen(cmdline, shell=True, stdout=PIPE)
     return float(cmd.stdout.readline())
 
-def bufferbloat():
+def topology():
     if not os.path.exists(args.dir):
         os.makedirs(args.dir)
     os.system("sysctl -w net.ipv4.tcp_congestion_control=%s" % args.cong)
@@ -212,7 +217,9 @@ def bufferbloat():
     # Use mininet CLI for debugging
     #CLI(net)
     sleep(10)
-    start_attacker(net)
+    if not args.disable_attacker:
+        print "Starting attacker!"
+        start_attacker(net)
     # Sleep for + 5 to give iperf chance to finish up
     sleep(args.time + 10)    
     stop_tcpprobe()
@@ -225,4 +232,4 @@ def bufferbloat():
     Popen("pgrep -f webserver.py | xargs kill -9", shell=True).wait()
 
 if __name__ == "__main__":
-    bufferbloat()
+    topology()
