@@ -15,8 +15,6 @@ from argparse import ArgumentParser
 
 from helper import avg, stdev
 
-from monitor import monitor_qlen
-
 import sys
 import os
 import math
