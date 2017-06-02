@@ -8,7 +8,7 @@ iperf_port=5001
 
 
 for min_rto in 1000; do
-	for qsize in 4; do
+	for qsize in 15; do
 		for i in 1 2 3; do
 
 			echo "Running without attacker"
