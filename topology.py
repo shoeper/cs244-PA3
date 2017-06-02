@@ -111,23 +111,6 @@ class BBTopo(Topo):
 
         return
 
-# Simple wrappers around monitoring utilities.  You are welcome to
-# contribute neatly written (using classes) monitoring scripts for
-# Mininet!
-def start_tcpprobe(outfile="cwnd.txt"):
-    os.system("rmmod tcp_probe; modprobe tcp_probe full=1;")
-    Popen("cat /proc/net/tcpprobe > %s/%s" % (args.dir, outfile),
-          shell=True)
-
-def stop_tcpprobe():
-    Popen("killall -9 cat", shell=True).wait()
-
-def start_qmon(iface, interval_sec=0.1, outfile="q.txt"):
-    monitor = Process(target=monitor_qlen,
-                      args=(iface, interval_sec, outfile))
-    monitor.start()
-    return monitor
-
 def start_iperf(net):
     print "Starting iperf server..."
     # Change the min rto for client and server
@@ -149,43 +132,6 @@ def start_attacker(net):
     print args.burst_period
     client.popen("python shrew.py %s %f %f %f" % (server.IP(), args.burst_period, args.burst_duration, args.time))
 
-def start_webserver(net):
-    server = net.get('server')
-    proc = server.popen("python http/webserver.py", shell=True)
-    sleep(1)
-    return [proc]
-
-def start_webpage_transfer(net, fetcher):
-    # Measure the time it takes to complete webpage transfer
-    # from h1 to h2 3 times every 5 seconds.  
-    fetch_times = []
-    start_time = time()
-    while True:
-        fetch_times.append(fetch_webpage(net, fetcher))
-        now = time()
-        delta = now - start_time
-        if delta > args.time:
-            break
-
-    print fetch_times
-    print "Average web page fetch time: " + str(avg(fetch_times))
-    print "Standard deviation for web page fetch time: " + str(stdev(fetch_times))
-
-def start_ping(net, name):
-    print "start_ping"
-     # Measure RTTs every 0.1 second. 
-    server = net.get('server')
-    client = net.get(name)
-    ping = client.popen('ping -i 0.1 -w %d %s > %s/ping.txt' % (args.time, server.IP(),
-                args.dir), shell=True)
-
-def fetch_webpage(net, fetcher):
-    client = net.get(fetcher)
-    server = net.get('server')
-    cmdline = 'curl -s -w "%{time_total}\n" -o /dev/null ' + '%s/http/index.html' % (server.IP())
-    cmd = client.popen(cmdline, shell=True, stdout=PIPE)
-    return float(cmd.stdout.readline())
-
 def topology():
     if not os.path.exists(args.dir):
         os.makedirs(args.dir)
@@ -200,29 +146,14 @@ def topology():
     # This dumps the topology and how nodes are interconnected through
     # links.
     dumpNodeConnections(net.hosts)
-    # This performs a basic all pairs ping test.
-    net.pingAll()
-
-    # Start all the monitoring processes
-    start_tcpprobe("cwnd.txt")
-
-    # s0-eth3 and s1-eth1 work for where the queue builds up
-    # s0-eth3 should be the the output interface from s0
-    # onto the bottleneck link
-    qmon = start_qmon(iface='s0-eth3',
-                      outfile='%s/q.txt' % (args.dir))
 
     start_iperf(net)
-    # Use mininet CLI for debugging
-    #CLI(net)
     sleep(10)
     if not args.disable_attacker:
         print "Starting attacker!"
         start_attacker(net)
     # Sleep for + 5 to give iperf chance to finish up
     sleep(args.time + 10)    
-    stop_tcpprobe()
-    qmon.terminate()
     net.stop()
     # Ensure that all processes you create within Mininet are killed.
     # Sometimes they require manual killing.
