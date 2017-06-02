@@ -16,7 +16,6 @@ from argparse import ArgumentParser
 from helper import avg, stdev
 
 from monitor import monitor_qlen
-import termcolor as T
 
 import sys
 import os
