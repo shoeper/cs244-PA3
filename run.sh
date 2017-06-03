@@ -7,7 +7,7 @@ time=30
 iperf_port=5001
 
 python init_dir.py 
-for cong in reno cubic; do
+for cong in reno cubic westwood vegas; do
 	for min_rto in 1000; do
 		for qsize in 4; do
 			for i in 1 2 3; do
