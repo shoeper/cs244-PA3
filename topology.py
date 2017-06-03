@@ -146,12 +146,11 @@ def topology():
     dumpNodeConnections(net.hosts)
 
     start_iperf(net)
-    sleep(10)
     if not args.disable_attacker:
         print "Starting attacker!"
         start_attacker(net)
     # Sleep for + 5 to give iperf chance to finish up
-    sleep(args.time + 10)    
+    sleep(args.time + 5)    
     net.stop()
     # Ensure that all processes you create within Mininet are killed.
     # Sometimes they require manual killing.
