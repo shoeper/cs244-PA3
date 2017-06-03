@@ -8,19 +8,14 @@ import os
 import plot_normalized_throughput
 import re
 import shutil
+from helper import *
 
-def clean_data():
+def clean_data(args):
 	path = 'output/*' 
 	graphDir = "graphs" 
 	outDir = "cleanOutput"
 	files = glob.glob(path)  
-	# Remove existing graphs/ and output/ directory
-	if os.path.exists(graphDir):
-		shutil.rmtree(graphDir)
-	os.mkdir(graphDir)
-	if os.path.exists(outDir):
-		shutil.rmtree(outDir)
-	os.mkdir(outDir) 
+
 	for file in files:    
 	    dict = {} 
 	    f = open(file, 'r')  
@@ -39,8 +34,8 @@ def clean_data():
 	    f.close() 
 
 	    queueSize = re.search('[0-9]+', file).group(0)
-	    outfileName = outDir + "/" + queueSize + ".txt"
-	    minOutfileName = outDir + "/min" + queueSize + ".txt" 
+	    outfileName = outDir + "/" + args.cong + "_" + queueSize + ".txt"
+	    minOutfileName = outDir + "/" + args.cong + "_min" + queueSize + ".txt" 
 	    # Right now, plots min and avg on 2 separate graphs
 	    # To plot on the same graph, set minOutfileName to outfileName
 	    # and then remove the rest of the code pertaining to minOutfile
@@ -77,8 +72,14 @@ def clean_data():
 	    # TODO: remove code below (about queueing) later for final submission?
 	    # That is, we would have decided on a queue size then
 	    # so we wouldn't need to create separate plots by queue size
-	    plot_normalized_throughput.plot(outfileName, baseline_avg, graphDir + "/" + queueSize)
-	    plot_normalized_throughput.plot(minOutfileName, baseline_min, graphDir + "/min" + queueSize)
+	    plot_normalized_throughput.plot(outfileName, baseline_avg, graphDir + "/" + args.cong + "_" + queueSize)
+	    plot_normalized_throughput.plot(minOutfileName, baseline_min, graphDir + "/" + args.cong + "_min" + queueSize)
 
 if __name__ == "__main__":
-	clean_data()
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--cong',
+	                    help="TCP variant",
+	                    default="reno") # Will show the plot
+
+	args = parser.parse_args()
+	clean_data(args)
