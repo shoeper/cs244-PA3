@@ -1,6 +1,7 @@
 import http.server
 import socketserver
 
+
 class CS144Handler(http.server.SimpleHTTPRequestHandler):
 
     # Disable logging DNS lookups

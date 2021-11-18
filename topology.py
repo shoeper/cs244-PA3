@@ -1,23 +1,15 @@
 #!/usr/bin/python
 
-from mininet.cli import CLI
-from mininet.topo import Topo
-from mininet.node import CPULimitedHost
+import os
+from argparse import ArgumentParser
+from subprocess import Popen
+from time import sleep
+
 from mininet.link import TCLink
 from mininet.net import Mininet
-from mininet.log import lg, info
+from mininet.node import CPULimitedHost
+from mininet.topo import Topo
 from mininet.util import dumpNodeConnections
-
-from subprocess import Popen, PIPE
-from time import sleep, time
-from multiprocessing import Process
-from argparse import ArgumentParser
-
-from helper import avg, stdev
-
-import sys
-import os
-import math
 
 parser = ArgumentParser(description="Bufferbloat tests")
 parser.add_argument('--bw-server', '-bs',
@@ -77,7 +69,7 @@ parser.add_argument('--min_rto',
 parser.add_argument('--disable_attacker',
                     type=bool,
                     help="Whether the attacker is disabled",
-                    default=False)		
+                    default=False)
 
 # Linux uses CUBIC-TCP by default that doesn't have the usual sawtooth
 # behaviour.  For those who are curious, invoke this script with
@@ -89,6 +81,7 @@ parser.add_argument('--cong',
 
 # Expt parameters
 args = parser.parse_args()
+
 
 class BBTopo(Topo):
 
@@ -109,11 +102,12 @@ class BBTopo(Topo):
 
         return
 
+
 def start_iperf(net):
     print("Starting iperf server...")
     # Change the min rto for client and server
     # TODO: do we need to set the minRTO for the server?
-    
+
     rto_min = str(1000)
     server = net.get('server')
     server.popen("iperf -s -w 16m >> %s/iperf_server.txt" % args.dir, shell=True)
@@ -121,14 +115,17 @@ def start_iperf(net):
     client = net.get('innocent')
     cmd = "ip route change 10.0.0.0/8 dev innocent-eth0  proto kernel  scope link  src %s rto_min 1000" % client.IP()
     client.popen(cmd, shell=True).communicate()
-    client.popen("iperf -c %s -t %f -i %f -l %f > %s/iperf_out.txt" % (server.IP(), args.time, 2, 32768, args.dir), shell=True)
+    client.popen("iperf -c %s -t %f -i %f -l %f > %s/iperf_out.txt" % (server.IP(), args.time, 2, 32768, args.dir),
+                 shell=True)
+
 
 def start_attacker(net):
     client = net.get('attacker')
     server = net.get('server')
     print("Burst period: ")
     print(args.burst_period)
-    client.popen("python shrew.py %s %f %f %f" % (server.IP(), args.burst_period, args.burst_duration, args.time))
+    client.popen("python3 shrew.py %s %f %f %f" % (server.IP(), args.burst_period, args.burst_duration, args.time))
+
 
 def topology():
     if not os.path.exists(args.dir):
@@ -150,13 +147,14 @@ def topology():
         print("Starting attacker!")
         start_attacker(net)
     # Sleep for + 5 to give iperf chance to finish up
-    sleep(args.time + 5)    
+    sleep(args.time + 5)
     net.stop()
     # Ensure that all processes you create within Mininet are killed.
     # Sometimes they require manual killing.
     Popen("pgrep -f ping | xargs kill -9", shell=True).wait()
     Popen("pgrep -f iperf | xargs kill -9", shell=True).wait()
     Popen("pgrep -f webserver.py | xargs kill -9", shell=True).wait()
+
 
 if __name__ == "__main__":
     topology()

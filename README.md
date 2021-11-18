@@ -6,19 +6,13 @@ Reproduce instructions
 
 2. Follow the instructions to connect to your instance through ssh (click on the SSH button). The terminal window pop-up may be blocked, so make sure you enable pop-ups from Google Cloud.
 
-3. sudo apt-get update
+3. apt-get update && apt-get install -y git
 
-4. sudo apt-get install -y git
+4. git clone https://github.com/shoeper/cs244-PA3.git
 
-5. git clone https://github.com/hcaseyal/cs244-PA3.git
+5. cd cs244-PA3
 
-6. cd cs244-PA3
+6. bash ./installDependencies.sh (may take several minutes)
 
-7. chmod 755 installDependencies.sh
-
-8. sudo ./installDependencies.sh (may take several minutes)
-
-9. sudo ./run.sh  (takes ~2.5 hours). When the experiment is done, the last line in the terminal should read “Serving HTTP on 0.0.0.0 port 80”
-To view the graphs, first find the external IP of your Google Cloud instance on the instances page (a page refresh may be needed). See the link in step 1 if you no longer have the “instances” page open. Go to the address of your external IP in Google Chrome e.g., http://104.154.17.88/graphs/
-        
-External IP is the second to right column on the instances page
+8. ./run.sh  (takes ~2.5 hours). When the experiment is done, the last line in the terminal should read "Serving HTTP on 0.0.0.0 port 80"
+To view the graphs, first find the external IP which you can look up using `ip a` or running `curl https://icanhazip.com/`. Go to the address of your external IP in Google Chrome e.g., http://104.154.17.88/graphs/
