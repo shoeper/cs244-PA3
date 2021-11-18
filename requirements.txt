@@ -1,0 +1,2 @@
+matplotlib~=3.5.0
+mininet~=2.3.0.dev6

@@ -16,11 +16,11 @@ import math
 #import termcolor as T
 
 def read_list(fname, delim=','):
-    lines = open(fname).xreadlines()
+    lines = open(fname)
     ret = []
     for l in lines:
         ls = l.strip().split(delim)
-        ls = map(lambda e: '0' if e.strip() == '' or e.strip() == 'ms' or e.strip() == 's' else e, ls)
+        ls = ['0' if e.strip() == '' or e.strip() == 'ms' or e.strip() == 's' else e for e in ls]
         ret.append(ls)
     return ret
 
@@ -48,7 +48,7 @@ def col(n, obj = None, clean = lambda e: e):
         return f
     if type(obj) == type([]):
         if len(obj) > 0 and (type(obj[0]) == type([]) or type(obj[0]) == type({})):
-            return map(col(n, clean=clean), obj)
+            return list(map(col(n, clean=clean), obj))
     if type(obj) == type([]) or type(obj) == type({}):
         try:
             return clean(obj[n])
@@ -60,24 +60,24 @@ def col(n, obj = None, clean = lambda e: e):
     return None
 
 def transpose(l):
-    return zip(*l)
+    return list(zip(*l))
 
 def avg(lst):
     return sum(map(float, lst)) / len(lst)
 
 def stdev(lst):
     mean = avg(lst)
-    var = avg(map(lambda e: (e - mean)**2, lst))
+    var = avg([(e - mean)**2 for e in lst])
     return math.sqrt(var)
 
 def xaxis(values, limit):
     l = len(values)
-    return zip(*map(lambda (x,y): (x*1.0*limit/l, y), enumerate(values)))
+    return list(zip(*[(x_y[0]*1.0*limit/l, x_y[1]) for x_y in enumerate(values)]))
 
 def grouper(n, iterable, fillvalue=None):
     "grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx"
     args = [iter(iterable)] * n
-    return itertools.izip_longest(fillvalue=fillvalue, *args)
+    return itertools.zip_longest(fillvalue=fillvalue, *args)
 
 def cdf(values):
     values.sort()
@@ -106,11 +106,10 @@ def parse_cpu_usage(fname, nprocessors=8):
         total = [0]*8
         for cpu in collection:
           usages = cpu.split(':')[1]
-          usages = map(lambda e: e.split('%')[0],
-                       usages.split(','))
-          for i in xrange(len(usages)):
+          usages = [e.split('%')[0] for e in usages.split(',')]
+          for i in range(len(usages)):
               total[i] += float(usages[i])
-        total = map(lambda t: t/nprocessors, total)
+        total = [t/nprocessors for t in total]
 		# Skip idle time
         ret.append(total[0:3] + total[4:])
     return ret

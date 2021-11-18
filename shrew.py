@@ -10,7 +10,7 @@ def shrew():
 	try:
 		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	except socket.error:
-		print 'Failed to create socket'
+		print('Failed to create socket')
 		sys.exit()
 	start_time = time()
 	addr = sys.argv[1]
