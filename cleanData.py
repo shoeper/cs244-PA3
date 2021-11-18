@@ -1,14 +1,13 @@
 # Average data points and get rid of error messages
 # and plot
 # Makes 2 plots in the graphs/ directory
-# One plot uses the average throughput, and the other uses the min throughpu
-
-import glob   
-import os
-import plot_normalized_throughput
+# One plot uses the average throughput, and the other uses the min throughput
+import argparse
+import glob
 import re
-import shutil
-from helper import *
+
+import plot_normalized_throughput
+
 
 def clean_data(args):
     path = 'output/*'
@@ -55,7 +54,7 @@ def clean_data(args):
             val_floats = [float(x) for x in val]
             minVal = min(val_floats)
 
-            avg = sum(val_floats)/len(val_floats)
+            avg = sum(val_floats) / len(val_floats)
             if key != '0.0':
                 outfile.write(str(avg))
                 outfile.write("\n")
@@ -75,11 +74,12 @@ def clean_data(args):
         plot_normalized_throughput.plot(outfileName, baseline_avg, graphDir + "/" + args.cong + "_" + queueSize)
         plot_normalized_throughput.plot(minOutfileName, baseline_min, graphDir + "/" + args.cong + "_min" + queueSize)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--cong',
                         help="TCP variant",
-                        default="reno") # Will show the plot
+                        default="reno")  # Will show the plot
 
     args = parser.parse_args()
     clean_data(args)

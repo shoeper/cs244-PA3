@@ -1,9 +1,8 @@
-'''
+"""
 Matplotlib parameters to create pretty plots
-'''
+"""
 
 from matplotlib import rc, rcParams
-
 
 DEF_AXIS_LEFT = 0.15
 DEF_AXIS_RIGHT = 0.95
@@ -24,14 +23,14 @@ TEXT_LABELSIZE = 24
 
 COLOR_LIGHTGRAY = '#cccccc'
 
-#COLOR_HLINES = '#606060'
+# COLOR_HLINES = '#606060'
 COLOR_HLINES = 'black'
 HLINE_LABELSIZE = 24
 HLINE_LINEWIDTH = 2
 
-rc('axes', **{'labelsize' : 'large',
-              'titlesize' : 'large',
-              'grid' : True})
+rc('axes', **{'labelsize': 'large',
+              'titlesize': 'large',
+              'grid': True})
 rc('legend', **{'fontsize': 'xx-large'})
 rcParams['axes.labelsize'] = AXES_LABELSIZE
 rcParams['xtick.labelsize'] = TICK_LABELSIZE
@@ -47,7 +46,9 @@ rcParams['grid.color'] = COLOR_LIGHTGRAY
 rcParams['grid.linewidth'] = 0.6
 rcParams['ps.useafm'] = True
 rcParams['pdf.use14corefonts'] = True
-#rcParams['text.usetex'] = True
+
+
+# rcParams['text.usetex'] = True
 
 def quarter_size():
     QUARTER_AXIS_LEFT = 0.25
@@ -61,9 +62,9 @@ def quarter_size():
     QUARTER_TICK_LABELSIZE = 40
     QUARTER_TEXT_LABELSIZE = 40
 
-    rc('axes', **{'labelsize' : 'xx-large',
-                  'titlesize' : 'xx-large',
-                  'grid' : True})
+    rc('axes', **{'labelsize': 'xx-large',
+                  'titlesize': 'xx-large',
+                  'grid': True})
     rc('legend', **{'fontsize': 'xx-large'})
     rcParams['axes.labelsize'] = QUARTER_AXES_LABELSIZE
     rcParams['xtick.labelsize'] = QUARTER_TICK_LABELSIZE
