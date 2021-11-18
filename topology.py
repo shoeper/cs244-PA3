@@ -110,7 +110,7 @@ class BBTopo(Topo):
         return
 
 def start_iperf(net):
-    print "Starting iperf server..."
+    print("Starting iperf server...")
     # Change the min rto for client and server
     # TODO: do we need to set the minRTO for the server?
     
@@ -126,8 +126,8 @@ def start_iperf(net):
 def start_attacker(net):
     client = net.get('attacker')
     server = net.get('server')
-    print "Burst period: "
-    print args.burst_period
+    print("Burst period: ")
+    print(args.burst_period)
     client.popen("python shrew.py %s %f %f %f" % (server.IP(), args.burst_period, args.burst_duration, args.time))
 
 def topology():
@@ -147,7 +147,7 @@ def topology():
 
     start_iperf(net)
     if not args.disable_attacker:
-        print "Starting attacker!"
+        print("Starting attacker!")
         start_attacker(net)
     # Sleep for + 5 to give iperf chance to finish up
     sleep(args.time + 5)    
